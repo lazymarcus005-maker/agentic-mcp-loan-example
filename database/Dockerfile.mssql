@@ -1,0 +1,22 @@
+FROM mcr.microsoft.com/mssql/server:2022-latest
+
+USER root
+
+# เตรียมโฟลเดอร์ backup และ set owner ให้ user mssql
+RUN mkdir -p /var/opt/mssql/backup \
+    && chown -R mssql:mssql /var/opt/mssql
+
+# ใส่ไฟล์ backup เข้าไปใน image เลย
+# (เอา LoanDataDB.bak มาไว้ในโฟลเดอร์โปรเจกต์เดียวกับ Dockerfile นี้)
+COPY LoanDataDB.bak /var/opt/mssql/backup/LoanDataDB.bak
+
+# ใส่ entrypoint script
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+USER mssql
+
+ENV ACCEPT_EULA=Y
+ENV MSSQL_PID=Developer
+
+ENTRYPOINT ["/bin/bash", "/entrypoint.sh"]
