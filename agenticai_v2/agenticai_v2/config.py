@@ -17,11 +17,13 @@ class ProviderConfig:
 
 _GEMINI_OPENAI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai/"
 _OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
+_OLLAMA_CLOUD_OPENAI_BASE_URL = "https://ollama.com/v1"
 
 _API_KEY_ENV_VARS = {
     "openrouter": "OPENROUTER_API_KEY",
     "gemini": "GEMINI_API_KEY",
     "openai": "OPENAI_API_KEY",
+    "ollama_cloud": "OLLAMA_API_KEY",
     "openai_compatible": "OPENAI_COMPATIBLE_API_KEY",
 }
 
@@ -50,6 +52,12 @@ def get_provider_config(
             base_url=None,
             api_key=api_key or os.environ.get("OPENAI_API_KEY", ""),
             model=os.environ.get("OPENAI_MODEL", "gpt-4o-mini"),
+        )
+    if provider == "ollama_cloud":
+        return ProviderConfig(
+            base_url=_OLLAMA_CLOUD_OPENAI_BASE_URL,
+            api_key=api_key or os.environ.get("OLLAMA_API_KEY", ""),
+            model=os.environ.get("OLLAMA_MODEL", "gpt-oss:120b"),
         )
     if provider == "openai_compatible":
         return ProviderConfig(
@@ -80,11 +88,11 @@ def mask_secret(value: str) -> str:
     return f"{value[:6]}…{value[-4:]}"
 
 
-AVAILABLE_PROVIDERS = ["openrouter", "gemini", "openai", "openai_compatible"]
+AVAILABLE_PROVIDERS = ["openrouter", "gemini", "openai", "ollama_cloud", "openai_compatible"]
 
 
 def get_default_provider_and_model() -> tuple[str, str]:
-    provider = os.environ.get("LLM_PROVIDER", "openrouter").lower()
+    provider = os.environ.get("LLM_PROVIDER", "ollama_cloud").lower()
     return provider, get_provider_config(provider).model
 
 

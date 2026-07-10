@@ -22,6 +22,11 @@ const newChatBtn = document.getElementById("new-chat-btn");
 const emojiBtn = document.getElementById("emoji-btn");
 const emojiPanel = document.getElementById("emoji-panel");
 const suggestionChipsEl = document.getElementById("suggestion-chips");
+const setupModal = document.getElementById("setup-modal");
+const setupModalTitle = document.getElementById("setup-modal-title");
+const setupModalMessage = document.getElementById("setup-modal-message");
+const setupModalCloseBtn = document.getElementById("setup-modal-close-btn");
+const setupModalDismissBtn = document.getElementById("setup-modal-dismiss-btn");
 
 function renderMarkdown(text) {
   const html = marked.parse(text ?? "");
@@ -89,6 +94,30 @@ function escapeHtml(text) {
   return div.innerHTML;
 }
 
+function showSetupModal(title, message) {
+  setupModalTitle.textContent = title || "ต้องตั้งค่าระบบก่อนใช้งาน";
+  setupModalMessage.textContent = message || "กรุณาตรวจสอบ provider, model และ API key ในหน้า Settings";
+  setupModal.classList.remove("hidden");
+}
+
+function closeSetupModal() {
+  setupModal.classList.add("hidden");
+}
+
+function parseSetupError(detail) {
+  if (detail && typeof detail === "object") {
+    return {
+      title: detail.title || "ตั้งค่าระบบไม่สมบูรณ์",
+      message: detail.message || "กรุณาตรวจสอบ provider, model และ API key ในหน้า Settings",
+      canOpenSettings: detail.action === "settings" || detail.code,
+    };
+  }
+  if (typeof detail === "string") {
+    return { title: "เกิดข้อผิดพลาด", message: detail, canOpenSettings: false };
+  }
+  return null;
+}
+
 async function fetchSessions() {
   const res = await fetch("/api/sessions");
   sessions = await res.json();
@@ -122,6 +151,8 @@ async function init() {
   if (localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === "1") {
     sidebarEl.classList.add("collapsed");
   }
+
+  checkSetupStatus();
 
   await fetchSessions();
   if (sessions.length === 0) {
@@ -174,7 +205,14 @@ chatForm.addEventListener("submit", async (e) => {
   const sessionIndex = sessions.findIndex((s) => s.id === currentSessionId);
 
   if (!res.ok) {
-    pendingBubble.textContent = "เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง";
+    const err = await res.json().catch(() => ({}));
+    const setupError = parseSetupError(err.detail);
+    if (setupError?.canOpenSettings) {
+      pendingBubble.textContent = setupError.message;
+      showSetupModal(setupError.title, setupError.message);
+    } else {
+      pendingBubble.textContent = "เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง";
+    }
     pendingBubble.classList.remove("pending");
     return;
   }
@@ -210,9 +248,21 @@ emojiBtn.addEventListener("click", () => {
   emojiPanel.classList.toggle("hidden");
 });
 
+setupModalCloseBtn.addEventListener("click", closeSetupModal);
+setupModalDismissBtn.addEventListener("click", closeSetupModal);
+
 document.addEventListener("click", (e) => {
   if (!emojiPanel.contains(e.target) && e.target !== emojiBtn) {
     emojiPanel.classList.add("hidden");
+  }
+  if (e.target === setupModal) {
+    closeSetupModal();
+  }
+});
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") {
+    closeSetupModal();
   }
 });
 
@@ -234,6 +284,19 @@ function insertAtCursor(textarea, text) {
   textarea.value = textarea.value.slice(0, start) + text + textarea.value.slice(end);
   textarea.selectionStart = textarea.selectionEnd = start + text.length;
   autoResize();
+}
+
+async function checkSetupStatus() {
+  try {
+    const res = await fetch("/api/setup-status");
+    if (!res.ok) return;
+    const data = await res.json();
+    if (!data.ok) {
+      showSetupModal(data.title, data.message);
+    }
+  } catch (e) {
+    // Setup status is helpful but should not block chat page rendering.
+  }
 }
 
 init();

@@ -1,8 +1,57 @@
-const PROVIDER_GUIDE_IMAGES = {
-  openrouter: "how-to-get-openrouter-api-key.png",
-  gemini: "how-to-get-gemini-api-key.png",
-  openai: "how-to-get-openai-api-key.png",
+const PROVIDER_GUIDES = {
+  openrouter: {
+    title: "วิธีขอ API Key: openrouter",
+    markdown: "![วิธีขอ OpenRouter API Key](/assets/how-to-get-openrouter-api-key.png)",
+  },
+  gemini: {
+    title: "วิธีขอ API Key: gemini",
+    markdown: "![วิธีขอ Gemini API Key](/assets/how-to-get-gemini-api-key.png)",
+  },
+  openai: {
+    title: "วิธีขอ API Key: openai",
+    markdown: "![วิธีขอ OpenAI API Key](/assets/how-to-get-openai-api-key.png)",
+  },
+  ollama_cloud: {
+    title: "วิธีขอ API Key: Ollama Cloud",
+    markdown: `
+ทำตามขั้นตอนสั้น ๆ นี้เพื่อใช้งาน Ollama Cloud กับ ChatLoan
+
+1. เข้าเว็บ [ollama.com](https://ollama.com/) แล้วลงชื่อเข้าใช้
+
+![Ollama sign in](/assets/how-to-set-ollama-c/1-ollama-signin.png)
+
+2. เปิดหน้า [API Keys](https://ollama.com/settings/keys) แล้วกดสร้าง key ใหม่
+
+![Generate API key](/assets/how-to-set-ollama-c/2-generateapikey.png)
+
+3. คัดลอก API key ที่ได้ เก็บไว้ให้ปลอดภัย เพราะมักจะแสดงเต็มเพียงครั้งเดียว
+
+![Copy API key](/assets/how-to-set-ollama-c/3-coppyapikey.png)
+
+4. กลับมาหน้า Settings ของ ChatLoan เลือก provider \`ollama_cloud\` แล้ววาง key ในช่อง API Key
+
+![Set API key](/assets/how-to-set-ollama-c/4-setapikey.png)
+
+5. กดบันทึก แล้วกลับไปหน้าแชทเพื่อใช้งาน model \`gpt-oss:120b\`
+
+![Usage](/assets/how-to-set-ollama-c/5-usage.png)
+
+เอกสารอ้างอิง: [Ollama Cloud](https://docs.ollama.com/cloud), [Authentication](https://docs.ollama.com/api/authentication)
+`.trim(),
+  },
   openai_compatible: null,
+};
+
+const MODEL_PLACEHOLDERS = {
+  openrouter: "เช่น openai/gpt-4o-mini",
+  gemini: "เช่น gemini-2.5-flash",
+  openai: "เช่น gpt-4o-mini",
+  ollama_cloud: "กำหนดโดยระบบ",
+  openai_compatible: "ระบุ model id ของ endpoint",
+};
+
+const LOCKED_MODELS = {
+  ollama_cloud: "gpt-oss:120b",
 };
 
 const providerSelect = document.getElementById("provider-select");
@@ -20,7 +69,7 @@ const fetchToolsBtn = document.getElementById("fetch-tools-btn");
 const toolListEl = document.getElementById("tool-list");
 const apiKeyModal = document.getElementById("api-key-modal");
 const modalTitle = document.getElementById("modal-title");
-const modalImage = document.getElementById("modal-image");
+const modalContent = document.getElementById("modal-content");
 const modalCloseBtn = document.getElementById("modal-close-btn");
 
 let currentSettings = null;
@@ -28,6 +77,17 @@ let currentSettings = null;
 function applyProviderView() {
   const provider = providerSelect.value;
   apiKeyInput.value = "";
+  modelInput.placeholder = MODEL_PLACEHOLDERS[provider] || "ระบุ model id";
+  if (LOCKED_MODELS[provider]) {
+    modelInput.value = LOCKED_MODELS[provider];
+    modelInput.disabled = true;
+  } else {
+    modelInput.disabled = false;
+    if (currentSettings?.provider === provider) {
+      modelInput.value = currentSettings.model || "";
+    }
+  }
+
   const info = currentSettings?.api_keys?.[provider];
   if (info && info.has_value) {
     apiKeyInput.placeholder = info.masked;
@@ -42,8 +102,8 @@ function applyProviderView() {
     baseUrlInput.value = currentSettings?.openai_compatible_base_url || "";
   }
 
-  const guideImage = PROVIDER_GUIDE_IMAGES[provider];
-  if (guideImage) {
+  const guide = PROVIDER_GUIDES[provider];
+  if (guide) {
     howToBtn.textContent = `📖 วิธีขอ API Key (${provider})`;
     howToBtn.style.display = "inline-flex";
   } else {
@@ -63,10 +123,10 @@ providerSelect.addEventListener("change", applyProviderView);
 
 howToBtn.addEventListener("click", () => {
   const provider = providerSelect.value;
-  const guideImage = PROVIDER_GUIDE_IMAGES[provider];
-  if (!guideImage) return;
-  modalTitle.textContent = `วิธีขอ API Key: ${provider}`;
-  modalImage.src = `/assets/${guideImage}`;
+  const guide = PROVIDER_GUIDES[provider];
+  if (!guide) return;
+  modalTitle.textContent = guide.title;
+  modalContent.innerHTML = DOMPurify.sanitize(marked.parse(guide.markdown));
   apiKeyModal.classList.remove("hidden");
 });
 

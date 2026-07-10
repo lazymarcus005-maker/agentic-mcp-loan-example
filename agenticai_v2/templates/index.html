@@ -67,6 +67,18 @@
     </main>
   </div>
 
+  <div id="setup-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="setup-modal-title">
+    <div class="modal-box setup-modal-box">
+      <button type="button" id="setup-modal-close-btn" class="modal-close" aria-label="ปิด">✕</button>
+      <h3 id="setup-modal-title">ต้องตั้งค่าระบบก่อนใช้งาน</h3>
+      <p id="setup-modal-message" class="modal-message"></p>
+      <div class="modal-actions">
+        <a href="/settings" class="save-btn modal-primary-action">ไปหน้า Settings</a>
+        <button type="button" id="setup-modal-dismiss-btn" class="how-to-btn">ปิด</button>
+      </div>
+    </div>
+  </div>
+
   <script src="/static/js/chat.js?v={{ static_version }}"></script>
 </body>
 </html>

@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>ตั้งค่า - ChatLoan</title>
   <link rel="stylesheet" href="/static/css/styles.css?v={{ static_version }}" />
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js"></script>
 </head>
 <body class="page-scroll">
   <div class="settings-page">
@@ -19,6 +21,7 @@
           <option value="openrouter">openrouter</option>
           <option value="gemini">gemini</option>
           <option value="openai">openai</option>
+          <option value="ollama_cloud">ollama_cloud</option>
           <option value="openai_compatible">openai_compatible</option>
         </select>
       </div>
@@ -54,7 +57,7 @@
     <div class="modal-box">
       <button type="button" id="modal-close-btn" class="modal-close" aria-label="ปิด">✕</button>
       <h3 id="modal-title"></h3>
-      <img id="modal-image" class="modal-image" src="" alt="วิธีขอ API Key" />
+      <div id="modal-content" class="modal-content"></div>
     </div>
   </div>
 
