@@ -19,13 +19,14 @@ This project is for demo and local development only. Loan data is test data. Do 
 
 ```mermaid
 flowchart LR
-    User[User Browser] --> Web[ChatLoan FastAPI UI]
-    Web --> LLM[LLM Provider<br/>Ollama Cloud / OpenAI-compatible]
-    Web --> MCP[MCP MSSQL Server]
+    User[User Browser] --> UI[ChatLoan UI<br/>HTML / CSS / JS]
+    UI --> Agent[ChatLoan Agentic Agent<br/>FastAPI]
+    Agent --> LLM[LLM Provider<br/>Ollama Cloud / OpenAI-compatible]
+    Agent --> MCP[MCP MSSQL Server]
     MCP --> SQL[(SQL Server<br/>LoanDataDB)]
 
     subgraph Docker Compose
-        Web
+        Agent
         MCP
         SQL
     end
