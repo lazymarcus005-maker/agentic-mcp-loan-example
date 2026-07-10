@@ -2,6 +2,10 @@
 
 Minimal loan Q&A demo that connects a FastAPI chat UI to an MCP server for read-only SQL Server loan data queries. The app uses an LLM provider, defaults to Ollama Cloud, and answers through MCP tools backed by the restored `LoanDataDB` database.
 
+## Demo
+
+![ChatLoan web demo](agenticai_v2/assets/web.gif)
+
 ## Tech Stack
 
 - Python 3.11, FastAPI, Jinja2
